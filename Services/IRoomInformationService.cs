@@ -1,4 +1,4 @@
-﻿using BusinessObjects;
+﻿using BusinessObjects.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +9,10 @@ namespace Services
 {
     public interface IRoomInformationService
     {
-        void AddRoomInformation(RoomInformation roomInformation);
-        List<RoomInformation> GetRoomInformations();
-        RoomInformation GetRoomInformation(int roomID);
-        void UpdateRoomInformation(RoomInformation roomInformation);
-        void DeleteRoomInformation(int roomID);
+        Task AddRoomInformation(RoomInformation roomInformation);
+        Task<IEnumerable<RoomInformation>> GetRoomInformations();
+        Task<RoomInformation> GetRoomInformation(int roomID);
+        Task UpdateRoomInformation(RoomInformation roomInformation);
+        Task DeleteRoomInformation(int roomID);
     }
 }

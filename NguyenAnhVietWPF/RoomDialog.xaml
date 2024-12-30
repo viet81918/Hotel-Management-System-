@@ -1,0 +1,55 @@
+﻿<Window x:Class="NguyenAnhVietWPF.RoomDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NguyenAnhVietWPF"
+        mc:Ignorable="d"
+        Title="RoomDialog" Height="500" Width="400">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Content="Room ID:" Grid.Row="0"/>
+        <TextBox x:Name="txtRoomId" Grid.Row="0" Margin="109,0,0,10"/>
+
+        <Label Content="Room Number:" Grid.Row="1"/>
+        <TextBox x:Name="txtRoomNumber" Grid.Row="1" Margin="109,0,0,10"/>
+
+        <Label Content="Room Description:" Grid.Row="2"/>
+        <TextBox x:Name="txtRoomDescription" Grid.Row="2" Margin="109,0,0,10"/>
+
+        <Label Content="Max Capacity:" Grid.Row="3"/>
+        <TextBox x:Name="txtRoomMaxCapacity" Grid.Row="3" Margin="109,0,0,10"/>
+
+        <Label Content="Room Status:" Grid.Row="4"/>
+        <TextBox x:Name="txtRoomStatus" Grid.Row="4" Margin="109,0,0,10"/>
+
+        <Label Content="Room Price:" Grid.Row="5"/>
+        <TextBox x:Name="txtRoomPrice" Grid.Row="5" Margin="109,0,0,10" />
+        <Label Content="Room Type :" Grid.Row="6" Margin="10,0,-10,88" Grid.RowSpan="2"/>
+        <ComboBox x:Name="cboCategory" Grid.Row="7"
+   DisplayMemberPath="RoomTypeName" SelectedValuePath="RoomTypeId" Margin="0,13,0,60"/>
+
+        <Button Content="Save" Grid.Row="7" HorizontalAlignment="Left" Width="75" Click="btnSave_Click" Margin="275,45,0,36"/>
+
+        <DataGrid x:Name="dgData" Margin="-22,102,-22,-152" Grid.Column="0" Grid.Row="7" AutoGenerateColumns="False" SelectionChanged="dgData_SelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Room ID" Binding="{Binding RoomId}" />
+                <DataGridTextColumn Header="Room Number" Binding="{Binding RoomNumber}" />
+                <DataGridTextColumn Header="Room Description" Binding="{Binding RoomDescription}" />
+                <DataGridTextColumn Header="Max Capacity" Binding="{Binding RoomMaxCapacity}" />
+                <DataGridTextColumn Header="Status" Binding="{Binding RoomStatus}" />
+                <DataGridTextColumn Header="Price" Binding="{Binding RoomPricePerDate}" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>

@@ -1,4 +1,4 @@
-﻿using BusinessObjects;
+﻿using BusinessObjects.Models;
 using DataAccessObjects;
 using System;
 using System.Collections.Generic;
@@ -10,17 +10,29 @@ namespace Repositories
 {
     public class BookingDetailRepository : IBookingDetailRepository
     {
-        public void AddBookingDetail(BookingDetail bookingDetail) => BookingDetailDAO.AddBookingDetail(bookingDetail);
+        public async Task AddBookingDetail(BookingDetail bookingDetail)
+        {
+            await BookingDetailDAO.Instance.AddBookingDetail(bookingDetail);
+        }
 
-        // Read
-        public List<BookingDetail> GetBookingDetails() => BookingDetailDAO.GetBookingDetails();
+        public async Task DeleteBookingDetail(int bookingReservationID, int roomID)
+        {
+            await BookingDetailDAO.Instance.DeleteBookingDetail(bookingReservationID, roomID);
+        }
 
-        public List<BookingDetail> GetBookingDetail(int bookingReservationID, int roomID) => BookingDetailDAO.GetBookingDetail(bookingReservationID, roomID);
+        public async Task<IEnumerable<BookingDetail>> GetBookingDetail(int? bookingReservationID = null, int? roomID = null)
+        {
+            return await BookingDetailDAO.Instance.GetBookingDetail(bookingReservationID, roomID);
+        }
 
-        // Update
-        public void UpdateBookingDetail(BookingDetail bookingDetail) => BookingDetailDAO.UpdateBookingDetail(bookingDetail);
+        public async Task<IEnumerable<BookingDetail>> GetBookingDetails()
+        {
+            return await BookingDetailDAO.Instance.GetBookingDetails();
+        }
 
-        // Delete
-        public void DeleteBookingDetail(int bookingReservationID, int roomID) => BookingDetailDAO.DeleteBookingDetail(bookingReservationID, roomID);
+        public async Task UpdateBookingDetail(BookingDetail bookingDetail)
+        {
+            await BookingDetailDAO.Instance.UpdateBookingDetail(bookingDetail);
+        }
     }
 }

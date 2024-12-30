@@ -1,4 +1,4 @@
-﻿using BusinessObjects;
+﻿using BusinessObjects.Models;
 using DataAccessObjects;
 using Repositories;
 using System;
@@ -19,29 +19,29 @@ namespace Services
             roomInformationRepository = new RoomInformationRepository(); // Replace with actual repository implementation
         }
 
-        public void AddRoomInformation(RoomInformation roomInformation)
+        public async Task AddRoomInformation(RoomInformation roomInformation)
         {
-            roomInformationRepository.AddRoomInformation(roomInformation);
+            await roomInformationRepository.AddRoomInformation(roomInformation);
         }
 
-        public List<RoomInformation> GetRoomInformations()
+        public  async Task<IEnumerable<RoomInformation>> GetRoomInformations()
         {
-            return roomInformationRepository.GetRoomInformations();
+            return await roomInformationRepository.GetRoomInformations();
         }
 
-        public RoomInformation GetRoomInformation(int roomID)
+        public async Task<RoomInformation> GetRoomInformation(int roomID)
         {
-            return roomInformationRepository.GetRoomInformation(roomID);
+            return await roomInformationRepository.GetRoomInformation(roomID);
         }
 
-        public void UpdateRoomInformation(RoomInformation roomInformation)
+        public async Task UpdateRoomInformation(RoomInformation roomInformation)
         {
-            roomInformationRepository.UpdateRoomInformation(roomInformation);
+             await roomInformationRepository.UpdateRoomInformation(roomInformation);
         }
 
-        public void DeleteRoomInformation(int roomID)
+        public async Task DeleteRoomInformation(int roomID)
         {
-            roomInformationRepository.DeleteRoomInformation(roomID);
+           await roomInformationRepository.DeleteRoomInformation(roomID);
         }
     }
 }

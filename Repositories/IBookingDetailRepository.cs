@@ -1,4 +1,4 @@
-﻿using BusinessObjects;
+﻿using BusinessObjects.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,17 +9,17 @@ namespace Repositories
 {
     public interface IBookingDetailRepository
     {
-        void AddBookingDetail(BookingDetail bookingDetail);
+        Task AddBookingDetail(BookingDetail bookingDetail);
 
         // Read
-        List<BookingDetail> GetBookingDetails();
+        Task<IEnumerable<BookingDetail>> GetBookingDetails();
 
-        List<BookingDetail> GetBookingDetail(int bookingReservationID, int roomID);
+        Task<IEnumerable<BookingDetail>> GetBookingDetail(int? bookingReservationID = null, int? roomID = null);
 
         // Update
-        void UpdateBookingDetail(BookingDetail bookingDetail);
+        Task UpdateBookingDetail(BookingDetail bookingDetail);
 
         // Delete
-        void DeleteBookingDetail(int bookingReservationID, int roomID);
+        Task DeleteBookingDetail(int bookingReservationID, int roomID);
     }
 }

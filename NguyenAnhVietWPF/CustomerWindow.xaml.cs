@@ -1,4 +1,5 @@
 ﻿using BusinessObjects;
+using BusinessObjects.Models;
 using Microsoft.Identity.Client.NativeInterop;
 using Services;
 using System;

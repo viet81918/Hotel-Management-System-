@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Windows;
 using System.IO;
+using BusinessObjects.Models;
 namespace NguyenAnhVietWPF
 {
     /// <summary>
@@ -36,7 +37,7 @@ namespace NguyenAnhVietWPF
         }
 
 
-        private void btnLogin_Click(object sender, RoutedEventArgs e)
+        private async void btnLogin_Click(object sender, RoutedEventArgs e)
         {
             string enteredUsername = txtUser.Text.Trim();
             string enteredPassword = txtPass.Password.Trim();
@@ -53,7 +54,7 @@ namespace NguyenAnhVietWPF
             else
             {
                 // Check customer credentials using service
-                Customer account = iCustomerService.GetCustomer(txtUser.Text);
+                Customer account = await iCustomerService.GetCustomer(txtUser.Text);
                 if (account != null && account.Password.Equals(enteredPassword))
                 {
                     // Open CustomerWindow if customer credentials are valid
@@ -63,10 +64,11 @@ namespace NguyenAnhVietWPF
                 }
                 else
                 {
-                    MessageBox.Show(defaultAdminEmail + defaultAdminPassword );
+                    MessageBox.Show("Invalid username or password.");
                 }
             }
         }
+
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {

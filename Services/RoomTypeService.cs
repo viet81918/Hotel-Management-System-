@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Repositories; // Assuming this namespace contains IRoomTypeRepository and RoomType
-using BusinessObjects; // Assuming this namespace contains RoomType
+using BusinessObjects.Models; // Assuming this namespace contains RoomType
 
 namespace Services
 {
@@ -14,29 +14,29 @@ namespace Services
             roomTypeRepository = new RoomTypeRepository(); // Replace with actual repository implementation
         }
 
-        public RoomType GetRoomType(int roomTypeID)
+        public async Task<RoomType> GetRoomType(int roomTypeID)
         {
-            return roomTypeRepository.GetRoomType(roomTypeID);
+            return await roomTypeRepository.GetRoomType(roomTypeID);
         }
 
-        public List<RoomType> GetAllRoomTypes()
+        public async Task<IEnumerable<RoomType>> GetAllRoomTypes()
         {
-            return roomTypeRepository.GetAllRoomTypes();
+            return await roomTypeRepository.GetAllRoomTypes();
         }
 
-        public void AddRoomType(RoomType roomType)
+        public async Task AddRoomType(RoomType roomType)
         {
-            roomTypeRepository.AddRoomType(roomType);
+           await  roomTypeRepository.AddRoomType(roomType);
         }
 
-        public void UpdateRoomType(RoomType roomType)
+        public async Task UpdateRoomType(RoomType roomType)
         {
-            roomTypeRepository.UpdateRoomType(roomType);
+           await roomTypeRepository.UpdateRoomType(roomType);
         }
 
-        public void DeleteRoomType(int roomTypeID)
+        public async Task DeleteRoomType(int roomTypeID)
         {
-            roomTypeRepository.DeleteRoomType(roomTypeID);
+           await roomTypeRepository.DeleteRoomType(roomTypeID);
         }
     }
 }

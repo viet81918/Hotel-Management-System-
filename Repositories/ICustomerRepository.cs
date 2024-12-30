@@ -1,13 +1,13 @@
-﻿using BusinessObjects;
+﻿using BusinessObjects.Models;
 
 namespace Repositories
 {
     public interface ICustomerRepository
     {
-        void AddCustomer(Customer customer);
-        List<Customer> GetCustomers();
-        Customer GetCustomer(String email);
-        void UpdateCustomer(Customer customer);
-        void DeleteCustomer(int customerID);
+        Task AddCustomer(Customer customer);
+        Task<IEnumerable<Customer>> GetCustomers();
+        Task<Customer> GetCustomer(String email);
+        Task UpdateCustomer(Customer customer);
+        Task DeleteCustomer(int customerID);
     }
 }

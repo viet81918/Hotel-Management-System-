@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Repositories; // Assuming this namespace contains IBookingReservationRepository
-using BusinessObjects; // Assuming this namespace contains BookingReservation
+using BusinessObjects.Models; // Assuming this namespace contains BookingReservation
 
 namespace Services
 {
@@ -14,29 +14,29 @@ namespace Services
             bookingReservationRepository = new BookingReservationRepository();
         }
 
-        public void AddBookingReservation(BookingReservation bookingReservation)
+        public async Task AddBookingReservation(BookingReservation bookingReservation)
         {
-            bookingReservationRepository.AddBookingReservation(bookingReservation);
+            await bookingReservationRepository.AddBookingReservation(bookingReservation);
         }
 
-        public void UpdateBookingReservation(BookingReservation bookingReservation)
+        public async Task UpdateBookingReservation(BookingReservation bookingReservation)
         {
-            bookingReservationRepository.UpdateBookingReservation(bookingReservation);
+            await bookingReservationRepository.UpdateBookingReservation(bookingReservation);
         }
 
-        public void DeleteBookingReservation(int bookingReservationID)
+        public async Task DeleteBookingReservation(int bookingReservationID)
         {
-            bookingReservationRepository.DeleteBookingReservation(bookingReservationID);
+            await bookingReservationRepository.DeleteBookingReservation(bookingReservationID);
         }
 
-        public List<BookingReservation> GetBookingReservation(int bookingReservationID)
+        public async Task<IEnumerable<BookingReservation>> GetBookingReservation(int? customerId = null, int? reservationId = null)
         {
-            return bookingReservationRepository.GetBookingReservation(bookingReservationID);
+            return await bookingReservationRepository.GetBookingReservation(customerId, reservationId);
         }
 
-        public List<BookingReservation> GetBookingReservations()
+        public async Task<IEnumerable<BookingReservation>> GetBookingReservations()
         {
-            return bookingReservationRepository.GetBookingReservations();
+            return await bookingReservationRepository.GetBookingReservations();
         }
     }
 }

@@ -24,6 +24,7 @@
             <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -36,13 +37,13 @@
 
         <Label Content="Booking Reservation ID" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
         <TextBox x:Name="txtBookingReservationID" Grid.Row="1" Grid.ColumnSpan="3" Margin="148,4,4,4"/>
+        <Label Content="StartDate" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+        <TextBox x:Name="txtStartDate" Grid.Row="2" Grid.ColumnSpan="3" Margin="148,5,4,4"/>
+        <Label Content="EndDate" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+        <TextBox x:Name="txtEndDate" Grid.Row="3" Grid.ColumnSpan="3" Margin="148,4,4,4"/>
+        <Button Content="Add Booking Reservation " Grid.Row="5" Grid.Column="0" HorizontalAlignment="Left" Margin="10,0,0,0" Width="100" Click="btnAddBookingReservation_Click"/>
 
-        <Label Content="Start Day" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,327,0"/>
-        <TextBox x:Name="txtStartDay" Grid.Row="2" Grid.ColumnSpan="3" Margin="77,4,4,4"/>
-
-        <Label Content="End Day" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,26,327,0" Grid.RowSpan="2"/>
-        <TextBox x:Name="txtEndDay" Grid.Row="3" Grid.ColumnSpan="3" Margin="77,4,10,4"/>
-        <DataGrid x:Name="dgRooms" Grid.Column="0" Grid.Row="4" Margin="4" AutoGenerateColumns="False" >
+        <DataGrid x:Name="dgRooms" Grid.Column="0" Grid.Row="4" Margin="4" AutoGenerateColumns="False" SelectedValuePath="RoomId" >
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Room ID" Binding="{Binding RoomID}" />
                 <DataGridTextColumn Header="Room Name" Binding="{Binding RoomNumber}" />
@@ -52,18 +53,16 @@
             </DataGrid.Columns>
         </DataGrid>
 
-
         <DataGrid x:Name="dgBookings" Grid.Column="2" Grid.Row="4" Margin="4" AutoGenerateColumns="False">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Booking Reservation ID" Binding="{Binding BookingReservationID}" />
-                <DataGridTextColumn Header="Room ID" Binding="{Binding RoomID}" />
-                <DataGridTextColumn Header="Start Day" Binding="{Binding StartDay}" />
-                <DataGridTextColumn Header="End Day" Binding="{Binding EndDay}" />
-                <DataGridTextColumn Header="Actual Price" Binding="{Binding ActualPrice}" />
+                <DataGridTextColumn Header="Booking Reservation ID" Binding="{Binding BookingReservationId}" />
+                <DataGridTextColumn Header="Booking Date" Binding="{Binding BookingDate}" />
+                <DataGridTextColumn Header="Total Price" Binding="{Binding TotalPrice}" />
+                <DataGridTextColumn Header="Customer ID" Binding="{Binding CustomerId}" />
+                <DataGridTextColumn Header="Booking status" Binding="{Binding BookingStatus}" />
             </DataGrid.Columns>
         </DataGrid>
-
-
-
+        <Button Content="Manage Profile" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2,10,0,0"
+Click="btnManageProfile_Click"/>
     </Grid>
 </Window>

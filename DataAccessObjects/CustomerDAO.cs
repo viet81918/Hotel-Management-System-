@@ -1,221 +1,91 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
-using BusinessObjects;
+using BusinessObjects.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataAccessObjects
 {
-    public class CustomerDAO
+    public class CustomerDAO : SingletonBase<CustomerDAO>
     {
-        public static string connectionString = "Data Source=DESKTOP-47R8QHN;Database=FUMiniHotelSystem;User Id=sa;Password=123;TrustServerCertificate=true;Trusted_Connection=SSPI;Encrypt=false";
-
-        public static  List<Customer> getCustomers()
+        private  FuminiHotelManagementContext _context ; //loi singleton design partern factory
+        public async Task<IEnumerable<Customer>> getCustomers()
         {
-            List<Customer> customers = new List<Customer>();
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                string sql = "SELECT CustomerID, CustomerFullName, Telephone, EmailAddress, CustomerBirthday, CustomerStatus, Password FROM Customer";
-
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    try
-                    {
-                        connection.Open();
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                Customer customer = new Customer
-                                (
-                                    reader.GetInt32(reader.GetOrdinal("CustomerID")),
-                                    reader.GetString(reader.GetOrdinal("CustomerFullName")),
-                                    reader.GetString(reader.GetOrdinal("Telephone")),
-                                    reader.GetString(reader.GetOrdinal("EmailAddress")),
-                                   reader.GetDateTime(reader.GetOrdinal("CustomerBirthday")),
-                                     reader.GetInt32(reader.GetOrdinal("CustomerStatus")),
-                                    reader.GetString(reader.GetOrdinal("Password"))
-                                );
-                                customers.Add(customer);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while retrieving customers: " + ex.Message);
-                    }
-                }
-            }
-
-            return customers;
+            _context = new();
+            return await _context.Customers.ToListAsync();
         }
-        public  static void AddCustomer(Customer customer)
+        public async Task AddCustomer(Customer customer)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                string sql = "INSERT INTO Customer (CustomerID,CustomerFullName, Telephone, EmailAddress, CustomerBirthday, CustomerStatus, Password) " +
-                             "VALUES (@CustomerID, @CustomerFullName, @Telephone, @EmailAddress, @CustomerBirthday, @CustomerStatus, @Password)";
+            _context = new();
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
 
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@CustomerID", customer.CustomerID);
-                    command.Parameters.AddWithValue("@CustomerFullName", customer.CustomerFullName);
-                    command.Parameters.AddWithValue("@Telephone", customer.Telephone);
-                    command.Parameters.AddWithValue("@EmailAddress", customer.EmailAddress);
-                    command.Parameters.AddWithValue("@CustomerBirthday", customer.CustomerBirthday);
-                    command.Parameters.AddWithValue("@CustomerStatus", customer.CustomerStatus);
-                    command.Parameters.AddWithValue("@Password", customer.Password);
-
-                    try
-                    {
-                        connection.Open();
-                        command.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while adding a customer: " + ex.Message);
-                    }
-                }
-            }
         }
 
-        // Read
-        public static  List<Customer> GetCustomers()
+        public async Task<Customer> GetCustomer(string email)
         {
-            List<Customer> customers = new List<Customer>();
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                string sql = "SELECT CustomerID, CustomerFullName, Telephone, EmailAddress, CustomerBirthday, CustomerStatus, Password FROM Customer";
-
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    try
-                    {
-                        connection.Open();
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                Customer customer = new Customer
-                                (
-                                    reader.GetInt32(reader.GetOrdinal("CustomerID")),
-                                    reader.GetString(reader.GetOrdinal("CustomerFullName")),
-                                    reader.GetString(reader.GetOrdinal("Telephone")),
-                                    reader.GetString(reader.GetOrdinal("EmailAddress")),
-                                    reader.GetDateTime(reader.GetOrdinal("CustomerBirthday")),
-                                    reader.GetInt32(reader.GetOrdinal("CustomerStatus")),
-                                    reader.GetString(reader.GetOrdinal("Password"))
-                                );
-                                customers.Add(customer);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while retrieving customers: " + ex.Message);
-                    }
-                }
-            }
-
-            return customers;
+            _context = new();
+            var customerdetail = await _context.Customers.FirstOrDefaultAsync(c => c.EmailAddress == email);
+            if (customerdetail == null) return null;
+            return customerdetail;
         }
-        public static Customer GetCustomer(string email)
+        public async Task<Customer> GetCustomerByID(int id)
         {
-            Customer customer = null;
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                string sql = "SELECT CustomerID, CustomerFullName, Telephone, EmailAddress, CustomerBirthday, CustomerStatus, Password FROM Customer " +
-                             "WHERE EmailAddress = @EmailAddress";
-
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@EmailAddress", email);
-
-                    try
-                    {
-                        connection.Open();
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                customer = new Customer
-                                (
-                                    reader.GetInt32(reader.GetOrdinal("CustomerID")),
-                                    reader.GetString(reader.GetOrdinal("CustomerFullName")),
-                                    reader.GetString(reader.GetOrdinal("Telephone")),
-                                    reader.GetString(reader.GetOrdinal("EmailAddress")),
-                                    reader.GetDateTime(reader.GetOrdinal("CustomerBirthday")),
-                                    reader.GetInt32(reader.GetOrdinal("CustomerStatus")),
-                                    reader.GetString(reader.GetOrdinal("Password"))
-                                );
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while retrieving the customer by email: " + ex.Message);
-                    }
-                }
-            }
-
-            return customer;
+            _context = new();
+            var customerdetail = await _context.Customers.FirstOrDefaultAsync(c => c.CustomerId == id );
+            if (customerdetail == null) return null;
+            return customerdetail;
         }
         // Update
-        public static void UpdateCustomer(Customer customer)
+        public async Task UpdateCustomer(Customer customer)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            _context = new();
+            try
             {
-                string sql = "UPDATE Customer SET CustomerFullName = @CustomerFullName, Telephone = @Telephone, EmailAddress = @EmailAddress, " +
-                             "CustomerBirthday = @CustomerBirthday, CustomerStatus = @CustomerStatus, Password = @Password " +
-                             "WHERE CustomerID = @CustomerID";
+                // Retrieve the existing customer
+                var existingItem = await GetCustomerByID(customer.CustomerId);
 
-                using (SqlCommand command = new SqlCommand(sql, connection))
+                if (existingItem != null)
                 {
-                    command.Parameters.AddWithValue("@CustomerID", customer.CustomerID);
-                    command.Parameters.AddWithValue("@CustomerFullName", customer.CustomerFullName);
-                    command.Parameters.AddWithValue("@Telephone", customer.Telephone);
-                    command.Parameters.AddWithValue("@EmailAddress", customer.EmailAddress);
-                    command.Parameters.AddWithValue("@CustomerBirthday", customer.CustomerBirthday);
-                    command.Parameters.AddWithValue("@CustomerStatus", customer.CustomerStatus);
-                    command.Parameters.AddWithValue("@Password", customer.Password);
+                    // Update the existing customer details
+                    _context.Entry(existingItem).CurrentValues.SetValues(customer);
+                }
+                else
+                {
+                    // Add the new customer if it doesn't exist
+                    _context.Customers.Add(customer);
+                }
 
-                    try
-                    {
-                        connection.Open();
-                        command.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while updating the customer: " + ex.Message);
-                    }
+                // Save changes to the database
+                int changes = await _context.SaveChangesAsync();
+                if (changes > 0)
+                {
+                    Console.WriteLine("Customer changes saved successfully to the database.");
+                }
+                else
+                {
+                    Console.WriteLine("No customer changes detected to save.");
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while updating the customer: {ex.Message}");
+                throw; // Re-throw the exception to ensure any calling code is aware of the error
+            }
         }
+
 
         // Delete
-        public static void DeleteCustomer(int customerID)
+        public async Task DeleteCustomer(int customerID)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            _context = new();
+            var customerdetail = await GetCustomerByID(customerID);
+            if (customerdetail != null)
             {
-                string sql = "DELETE FROM Customer WHERE CustomerID = @CustomerID";
-
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@CustomerID", customerID);
-
-                    try
-                    {
-                        connection.Open();
-                        command.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while deleting the customer: " + ex.Message);
-                    }
-                }
+                _context.Customers.Remove(customerdetail);
+                await _context.SaveChangesAsync();
             }
         }
+        }
     }
-}
+

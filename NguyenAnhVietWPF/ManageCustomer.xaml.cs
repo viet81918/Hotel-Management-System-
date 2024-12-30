@@ -1,7 +1,9 @@
 ﻿using BusinessObjects;
+using BusinessObjects.Models;
 using DataAccessObjects;
 using Services;
 using System;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,14 +17,19 @@ namespace NguyenAnhVietWPF
         {
             InitializeComponent();
             iCustomerService = new CustomerService();
-            LoadCustomerList();
+            InitializeAsync();
         }
 
-        private void LoadCustomerList()
+        private async Task InitializeAsync()
+        {
+
+            await LoadCustomerList();
+        }
+        private async Task LoadCustomerList()
         {
             try
             {
-                var customerList = CustomerDAO.getCustomers();
+                var customerList = await iCustomerService.GetCustomers();
                 dgData.ItemsSource = customerList;
             }
             catch (Exception ex)
@@ -59,7 +66,7 @@ namespace NguyenAnhVietWPF
                     txtCusFullName.Text,
                     txtCusTelephone.Text,
                     txtCusEmail.Text,
-                    DateTime.Parse(txtCusBirth.Text),
+                   ParseDateOnly(txtCusBirth.Text),
                     int.Parse(txtCusStatus.Text), // Assuming CustomerStatus is an int
                     txtCusPassword.Text     // Add other properties as needed
                 );
@@ -68,22 +75,41 @@ namespace NguyenAnhVietWPF
                 iCustomerService.AddCustomer(customer);
 
                 // Refresh customer list
-                LoadCustomerList();
+                InitializeAsync();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occurred: {ex.Message}");
             }
         }
+        public DateOnly ParseDateOnly(string dateString)
+        {
+            try
+            {
+                // Define the format of the date string
+                string format = "dd/MM/yyyy";
 
-        private void dgData_SelectionChanged(object sender, SelectionChangedEventArgs e)
+                // Parse the string to DateTime
+                DateTime dateTime = DateTime.ParseExact(dateString, format, CultureInfo.InvariantCulture);
+
+                // Convert DateTime to DateOnly
+                return DateOnly.FromDateTime(dateTime);
+            }
+            catch (FormatException ex)
+            {
+                Console.WriteLine($"An error occurred while parsing the date: {ex.Message}");
+                throw; // Re-throw the exception to ensure any calling code is aware of the error
+            }
+        }
+
+            private void dgData_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
                 if (dgData.SelectedItem == null || !(dgData.SelectedItem is Customer selectedCustomer))
                     return;
 
-                txtCustomerId.Text = selectedCustomer.CustomerID.ToString();
+                txtCustomerId.Text = selectedCustomer.CustomerId.ToString();
                 txtCusFullName.Text = selectedCustomer.CustomerFullName;
                 txtCusTelephone.Text = selectedCustomer.Telephone;
                 txtCusEmail.Text = selectedCustomer.EmailAddress;
@@ -94,6 +120,41 @@ namespace NguyenAnhVietWPF
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occurred: {ex.Message}");
+            }
+        }
+        private async void btnSearch_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Get the search keyword from the text box
+                string searchWord = txtSearchWord.Text.Trim();
+
+                // Fetch all room information
+                var allCus = await iCustomerService.GetCustomers();
+
+                // Filter rooms by name using LINQ
+                var filteredCuss = allCus
+                    .Where(r => r.CustomerFullName.Contains(searchWord, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (filteredCuss == null || !filteredCuss.Any())
+                {
+                    MessageBox.Show("No Cus found.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    dgData.ItemsSource = null;  // Clear the DataGrid if no results
+                }
+                else
+                {
+                    // Update the DataGrid with the search results
+                    dgData.ItemsSource = filteredCuss;
+
+                    ResetInput();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Display inner exception details
+                var innerExceptionMessage = ex.InnerException != null ? ex.InnerException.Message : string.Empty;
+                MessageBox.Show($"An error occurred: {ex.Message}\nInner Exception: {innerExceptionMessage}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -111,7 +172,7 @@ namespace NguyenAnhVietWPF
                 selectedCustomer.CustomerFullName = txtCusFullName.Text;
                 selectedCustomer.Telephone = txtCusTelephone.Text;
                 selectedCustomer.EmailAddress = txtCusEmail.Text;
-                selectedCustomer.CustomerBirthday = DateTime.ParseExact(txtCusBirth.Text, "dd/MM/yyyy", null); // Example format, adjust as per your requirement
+                selectedCustomer.CustomerBirthday = DateOnly.ParseExact(txtCusBirth.Text, "dd/MM/yyyy", null); // Example format, adjust as per your requirement
                 selectedCustomer.CustomerStatus = int.Parse(txtCusStatus.Text);
                 selectedCustomer.Password = txtCusPassword.Text;
                 iCustomerService.UpdateCustomer(selectedCustomer); // Update customer in database
@@ -135,12 +196,18 @@ namespace NguyenAnhVietWPF
                     MessageBox.Show("Please select a customer to delete.");
                     return;
                 }
+                var result = MessageBox.Show($"Are you sure you want to delete Customer {selectedCustomer.CustomerId}?", "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.No)
+                {
+                    return; // User chose not to delete
+                }
 
                 // Delete selected customer
-                iCustomerService.DeleteCustomer(selectedCustomer.CustomerID); // Assuming DeleteCustomer method in your service
+                iCustomerService.DeleteCustomer(selectedCustomer.CustomerId); // Assuming DeleteCustomer method in your service
 
                 // Refresh data grid
-                LoadCustomerList(); // Example method to reload customer data
+                InitializeAsync(); // Example method to reload customer data
 
                 MessageBox.Show("Customer deleted successfully.");
             }
@@ -149,7 +216,12 @@ namespace NguyenAnhVietWPF
                 MessageBox.Show($"An error occurred: {ex.Message}");
             }
         }
-
+        private async void btnManageRooms_Click(object sender, RoutedEventArgs e)
+        {
+            this.Hide();
+            AdminWindow manageRoom = new AdminWindow();
+            manageRoom.ShowDialog();
+        }
         private void ResetInput()
         {
             txtCustomerId.Text = "";

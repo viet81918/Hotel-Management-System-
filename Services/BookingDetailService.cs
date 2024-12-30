@@ -1,4 +1,4 @@
-﻿using BusinessObjects;
+﻿using BusinessObjects.Models;
 using DataAccessObjects;
 using Repositories;
 using Services;
@@ -20,29 +20,29 @@ namespace Services
             bookingDetailRepository = new BookingDetailRepository();
         }
 
-        public void AddBookingDetail(BookingDetail bookingDetail)
+        public async Task AddBookingDetail(BookingDetail bookingDetail)
         {
-            bookingDetailRepository.AddBookingDetail(bookingDetail);
+            await bookingDetailRepository.AddBookingDetail(bookingDetail);
         }
 
-        public void DeleteBookingDetail(int bookingReservationID, int roomID)
+        public async Task DeleteBookingDetail(int bookingReservationID, int roomID)
         {
-            bookingDetailRepository.DeleteBookingDetail(bookingReservationID, roomID);
+            await bookingDetailRepository.DeleteBookingDetail(bookingReservationID, roomID);
         }
 
-        public List<BookingDetail> GetBookingDetail(int bookingReservationID, int roomID)
+        public async Task<IEnumerable<BookingDetail>> GetBookingDetail(int? bookingReservationID = null , int? roomID = null)
         {
-            return bookingDetailRepository.GetBookingDetail(bookingReservationID, roomID);
+            return await bookingDetailRepository.GetBookingDetail(bookingReservationID, roomID);
         }
 
-        public List<BookingDetail> GetBookingDetails()
+        public async Task<IEnumerable<BookingDetail>> GetBookingDetails()
         {
-            return bookingDetailRepository.GetBookingDetails();
+            return await bookingDetailRepository.GetBookingDetails();
         }
 
-        public void UpdateBookingDetail(BookingDetail bookingDetail)
+        public async Task UpdateBookingDetail(BookingDetail bookingDetail)
         {
-            bookingDetailRepository.UpdateBookingDetail(bookingDetail);
-        }
+            await bookingDetailRepository.UpdateBookingDetail(bookingDetail);
+        }   
     }
 }

@@ -1,5 +1,6 @@
-﻿using BusinessObjects; // Assuming RoomInformation and RoomType are in BusinessObjects namespace
+﻿using BusinessObjects.Models; // Assuming RoomInformation and RoomType are in BusinessObjects namespace
 using DataAccessObjects;
+using Microsoft.IdentityModel.Tokens;
 using Services;
 using System;
 using System.Windows;
@@ -11,6 +12,7 @@ namespace NguyenAnhVietWPF
     {
         private readonly IRoomInformationService iRoomInformationService;
         private readonly IRoomTypeService iRoomTypeService;
+        private readonly IBookingDetailService iBookingDetailService;
 
         public AdminWindow()
         {
@@ -19,20 +21,32 @@ namespace NguyenAnhVietWPF
             // Initialize services
             iRoomInformationService = new RoomInformationService();
             iRoomTypeService = new RoomTypeService();
-
+            iBookingDetailService = new BookingDetailService();
+            InitializeAsync();
             // Load initial data
-            LoadRoomTypeList();
-            LoadRoomInformationList();
+
         }
 
-        private void LoadRoomTypeList()
+              private async Task InitializeAsync()
+        {
+
+ 
+            await LoadRoomTypeList();
+            await LoadRoomInformationList();
+        }
+
+        public async Task LoadRoomTypeList()
         {
             try
             {
-                var roomTypes = iRoomTypeService.GetAllRoomTypes();
-                cboCategory.ItemsSource = roomTypes;
+                var roomTypes = await iRoomTypeService.GetAllRoomTypes();
+                cboCategory.ItemsSource =  roomTypes;
+                if (roomTypes.IsNullOrEmpty())
+                {
+                    MessageBox.Show("No information of Room Types");
+                }
                 cboCategory.DisplayMemberPath = "RoomTypeName";
-                cboCategory.SelectedValuePath = "RoomTypeID";
+                cboCategory.SelectedValuePath = "RoomTypeId";
             }
             catch (Exception ex)
             {
@@ -40,13 +54,18 @@ namespace NguyenAnhVietWPF
             }
         }
 
-        private void LoadRoomInformationList()
+        public async Task LoadRoomInformationList()
         {
             try
             {
-                var roomInformationList = RoomInformationDAO.GetRoomInformations();
+                var roomInformationList = await iRoomInformationService.GetRoomInformations();
                 dgData.ItemsSource = roomInformationList;
+                if (roomInformationList.IsNullOrEmpty()) 
+                {
+                    MessageBox.Show("No information of Room information");
+                }
             }
+            
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error loading room information");
@@ -74,19 +93,20 @@ namespace NguyenAnhVietWPF
                 // Create RoomInformation object
                 RoomInformation room = new RoomInformation
                 {
-                    RoomID = Int32.Parse(txtRoomId.Text),
+                    RoomId = Int32.Parse(txtRoomId.Text),
                     RoomNumber = txtRoomNumber.Text,
                     RoomDescription = txtRoomDescription.Text,
                     RoomMaxCapacity = Int32.Parse(txtRoomMaxCapicity.Text),
                     RoomStatus = Int32.Parse(txtRoomStatus.Text),
-                    RoomPricePerDate = Double.Parse(txtRoomPrice.Text),
-                    RoomTypeID = (int)cboCategory.SelectedValue
+                    RoomPricePerDate = Decimal.Parse(txtRoomPrice.Text),
+                    RoomTypeId = (int)cboCategory.SelectedValue
                 };
 
                 // Save room information
                 iRoomInformationService.AddRoomInformation(room);
 
                 // Refresh room information list
+                LoadRoomTypeList();
                 LoadRoomInformationList();
             }
             catch (Exception ex)
@@ -102,13 +122,13 @@ namespace NguyenAnhVietWPF
                 if (dgData.SelectedItem == null || !(dgData.SelectedItem is RoomInformation selectedRoom))
                     return;
 
-                txtRoomId.Text = selectedRoom.RoomID.ToString();
+                txtRoomId.Text = selectedRoom.RoomId.ToString();
                 txtRoomNumber.Text = selectedRoom.RoomNumber;
                 txtRoomDescription.Text = selectedRoom.RoomDescription;
                 txtRoomMaxCapicity.Text = selectedRoom.RoomMaxCapacity.ToString();
                 txtRoomStatus.Text = selectedRoom.RoomStatus.ToString();
                 txtRoomPrice.Text = selectedRoom.RoomPricePerDate.ToString();
-                cboCategory.SelectedValue = selectedRoom.RoomTypeID;
+                cboCategory.SelectedValue = selectedRoom.RoomTypeId;
             }
             catch (Exception ex)
             {
@@ -130,9 +150,9 @@ namespace NguyenAnhVietWPF
                 selectedRoom.RoomNumber = txtRoomNumber.Text;
                 selectedRoom.RoomDescription = txtRoomDescription.Text;
                 selectedRoom.RoomMaxCapacity = Int32.Parse(txtRoomMaxCapicity.Text);
-                selectedRoom.RoomPricePerDate = Double.Parse(txtRoomPrice.Text);
+                selectedRoom.RoomPricePerDate = Decimal.Parse(txtRoomPrice.Text);
                 selectedRoom.RoomStatus = Int32.Parse(txtRoomStatus.Text);
-                selectedRoom.RoomTypeID = (int)cboCategory.SelectedValue;
+                selectedRoom.RoomTypeId = (int)cboCategory.SelectedValue;
                 iRoomInformationService.UpdateRoomInformation(selectedRoom);
                 // Notify DataGrid of the update
                 dgData.Items.Refresh();
@@ -144,7 +164,7 @@ namespace NguyenAnhVietWPF
             }
         }
 
-        private void btnDelete_Click(object sender, RoutedEventArgs e)
+        private async void btnDelete_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -153,16 +173,74 @@ namespace NguyenAnhVietWPF
                     MessageBox.Show("Please select a room to delete.");
                     return;
                 }
+                var result = MessageBox.Show($"Are you sure you want to delete Room Information {selectedRoom.RoomId}?", "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-                // Delete selected room
-                RoomInformationDAO.DeleteRoomInformation(selectedRoom.RoomID);
+                if (result == MessageBoxResult.No)
+                {
+                    return; // User chose not to delete
+                }
+                // Check if the room is associated with any booking details
+                var bookingDetails = await iBookingDetailService.GetBookingDetail(selectedRoom.RoomId);
+
+                if (bookingDetails == null || !bookingDetails.Any())
+                {
+                    // Delete the room if it is not associated with any booking details
+                    await iRoomInformationService.DeleteRoomInformation(selectedRoom.RoomId);
+                    MessageBox.Show("Room deleted successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    // Change the room status if it is associated with any booking details
+                    selectedRoom.RoomStatus = 2; // Or any other status indicating it's not available for booking
+                    await iRoomInformationService.UpdateRoomInformation(selectedRoom);
+                    MessageBox.Show("Room status updated to 'Inactive'.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
 
                 // Refresh room information list
-                LoadRoomInformationList();
+                dgData.Items.Refresh();
+                await InitializeAsync();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred: {ex.Message}");
+                // Display inner exception details
+                var innerExceptionMessage = ex.InnerException != null ? ex.InnerException.Message : string.Empty;
+                MessageBox.Show($"An error occurred: {ex.Message}\nInner Exception: {innerExceptionMessage}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+        private async void btnSearch_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Get the search keyword from the text box
+                string searchWord = txtSearchWord.Text.Trim();
+
+                // Fetch all room information
+                var allRooms = await iRoomInformationService.GetRoomInformations();
+
+                // Filter rooms by name using LINQ
+                var filteredRooms = allRooms
+                    .Where(r => r.RoomNumber.Contains(searchWord, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (filteredRooms == null || !filteredRooms.Any())
+                {
+                    MessageBox.Show("No rooms found.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    dgData.ItemsSource = null;  // Clear the DataGrid if no results
+                }
+                else
+                {
+                    // Update the DataGrid with the search results
+                    dgData.ItemsSource = filteredRooms;
+                    ResetInput();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Display inner exception details
+                var innerExceptionMessage = ex.InnerException != null ? ex.InnerException.Message : string.Empty;
+                MessageBox.Show($"An error occurred: {ex.Message}\nInner Exception: {innerExceptionMessage}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -181,6 +259,12 @@ namespace NguyenAnhVietWPF
             this.Hide();
             ManageCustomer manageCustomer = new ManageCustomer();
             manageCustomer.ShowDialog(); 
+        }
+        private void btnManageBookings_Click(object sender, RoutedEventArgs e)
+        {
+            this.Hide();
+            ManageBooking manageBooking = new ManageBooking();
+            manageBooking.ShowDialog();
         }
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {

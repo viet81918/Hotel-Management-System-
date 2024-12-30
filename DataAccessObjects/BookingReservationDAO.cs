@@ -1,176 +1,105 @@
 ﻿using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
-using BusinessObjects;
-
+using BusinessObjects.Models;
+using Microsoft.EntityFrameworkCore;
+using Xceed.Wpf.Toolkit;
+using System.Windows; // For MessageBoxResult and MessageBox
+using System.Drawing;
 namespace DataAccessObjects
 {
-    public class BookingReservationDAO
-    {
-        private static string connectionString = "Data Source=DESKTOP-47R8QHN;Database=FUMiniHotelSystem;User Id=sa;Password=123;TrustServerCertificate=true;Trusted_Connection=SSPI;Encrypt=false";
+    public class BookingReservationDAO : SingletonBase<BookingReservationDAO>
+    {         // Create
+        private  FuminiHotelManagementContext _context ; //loi singleton design partern factory
+        public async Task AddBookingReservation(BookingReservation bookingReservation)
+        {
+            _context = new();
+            try
+            {
+                // Check if the entity is already being tracked
+                var trackedEntity = _context.ChangeTracker.Entries<BookingReservation>()
+                    .FirstOrDefault(e => e.Entity.BookingReservationId == bookingReservation.BookingReservationId);
+
+                if (trackedEntity != null)
+                {
+                    // Detach the tracked entity
+                    _context.Entry(trackedEntity.Entity).State = EntityState.Detached;
+                }
+
+                _context.BookingReservations.Add(bookingReservation);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding booking: {ex.Message}");
+                throw; // Rethrow the exception to ensure any calling code is aware of the error
+            }
+        }
 
         // Create
-        public static void AddBookingReservation(BookingReservation bookingReservation)
-        {
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                string sql = "INSERT INTO BookingReservation (BookingReservationID, BookingDate, TotalPrice, CustomerID, BookingStatus) " +
-                             "VALUES (@BookingReservationID, @BookingDate, @TotalPrice, @CustomerID, @BookingStatus)";
 
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@BookingReservationID", bookingReservation.BookingReservationID);
-                    command.Parameters.AddWithValue("@BookingDate", bookingReservation.BookingDate);
-                    command.Parameters.AddWithValue("@TotalPrice", bookingReservation.TotalPrice);
-                    command.Parameters.AddWithValue("@CustomerID", bookingReservation.CustomerID);
-                    command.Parameters.AddWithValue("@BookingStatus", bookingReservation.BookingStatus);
-
-                    try
-                    {
-                        connection.Open();
-                        command.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while adding a booking reservation: " + ex.Message);
-                    }
-                }
-            }
-        }
 
         // Read
-        public static List<BookingReservation> GetBookingReservations()
+        public async Task<IEnumerable<BookingReservation>> GetBookingReservations()
         {
-            List<BookingReservation> bookingReservations = new List<BookingReservation>();
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                string sql = "SELECT BookingReservationID, BookingDate, TotalPrice, CustomerID, BookingStatus FROM BookingReservation";
-
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    try
-                    {
-                        connection.Open();
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                BookingReservation bookingReservation = new BookingReservation
-                                (
-                                    reader.GetInt32(reader.GetOrdinal("BookingReservationID")),
-                                    reader.GetDateTime(reader.GetOrdinal("BookingDate")),
-                                    reader.GetDecimal(reader.GetOrdinal("TotalPrice")),
-                                    reader.GetInt32(reader.GetOrdinal("CustomerID")),
-                                    reader.GetInt32(reader.GetOrdinal("BookingStatus"))
-                                );
-                                bookingReservations.Add(bookingReservation);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while retrieving booking reservations: " + ex.Message);
-                    }
-                }
-            }
-
-            return bookingReservations;
+            _context = new();
+            return await _context.BookingReservations.ToListAsync();
         }
+
+
         // Read specific booking reservation
-        public static List<BookingReservation> GetBookingReservation(int CustomerID)
+        public async Task<IEnumerable<BookingReservation>> GetBookingReservation(int? customerId = null, int? reservationId = null)
         {
-            List<BookingReservation> bookingReservations = new List<BookingReservation>();
+            using var _context = new FuminiHotelManagementContext(); // Ensure that your DbContext is properly instantiated
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            var query = _context.BookingReservations.AsQueryable();
+
+            if (customerId.HasValue)
             {
-                string sql = "SELECT BookingReservationID, BookingDate, TotalPrice, CustomerID, BookingStatus FROM BookingReservation " +
-                             "WHERE CustomerID = @CustomerID";
-
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@CustomerID", CustomerID);
-
-                    try
-                    {
-                        connection.Open();
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                BookingReservation bookingReservation = new BookingReservation
-                                (
-                                    reader.GetInt32(reader.GetOrdinal("BookingReservationID")),
-                                    reader.GetDateTime(reader.GetOrdinal("BookingDate")),
-                                    reader.GetDecimal(reader.GetOrdinal("TotalPrice")),
-                                    reader.GetInt32(reader.GetOrdinal("CustomerID")),
-                                    reader.GetInt32(reader.GetOrdinal("BookingStatus"))
-                                );
-                                bookingReservations.Add(bookingReservation);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while retrieving the booking reservations: " + ex.Message);
-                    }
-                }
+                query = query.Where(c => c.CustomerId == customerId.Value);
             }
+
+            if (reservationId.HasValue)
+            {
+                query = query.Where(c => c.BookingReservationId == reservationId.Value);
+            }
+
+            var bookingReservations = await query.ToArrayAsync();
 
             return bookingReservations;
         }
+
 
         // Update
-        public static void UpdateBookingReservation(BookingReservation bookingReservation)
+        public async Task UpdateBookingReservation(BookingReservation bookingReservation)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using var _context = new FuminiHotelManagementContext(); // Ensure your DbContext is properly instantiated
+
+            var existingReservation = await _context.BookingReservations
+                .FirstOrDefaultAsync(br => br.BookingReservationId == bookingReservation.BookingReservationId);
+
+            if (existingReservation != null)
             {
-                string sql = "UPDATE BookingReservation SET BookingDate = @BookingDate, TotalPrice = @TotalPrice, CustomerID = @CustomerID, BookingStatus = @BookingStatus " +
-                             "WHERE BookingReservationID = @BookingReservationID";
+                // Update the properties of the existing reservation
+                existingReservation.TotalPrice = bookingReservation.TotalPrice;
+                existingReservation.BookingDate = bookingReservation.BookingDate;
+                existingReservation.BookingStatus = bookingReservation.BookingStatus;
+                existingReservation.CustomerId = bookingReservation.CustomerId;
 
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@BookingReservationID", bookingReservation.BookingReservationID);
-                    command.Parameters.AddWithValue("@BookingDate", bookingReservation.BookingDate);
-                    command.Parameters.AddWithValue("@TotalPrice", bookingReservation.TotalPrice);
-                    command.Parameters.AddWithValue("@CustomerID", bookingReservation.CustomerID);
-                    command.Parameters.AddWithValue("@BookingStatus", bookingReservation.BookingStatus);
-
-                    try
-                    {
-                        connection.Open();
-                        command.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while updating the booking reservation: " + ex.Message);
-                    }
-                }
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new Exception("Booking reservation not found.");
             }
         }
 
         // Delete
-        public static void DeleteBookingReservation(int bookingReservationID)
+        public async Task DeleteBookingReservation(int bookingReservationID)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                string sql = "DELETE FROM BookingReservation WHERE BookingReservationID = @BookingReservationID";
+            _context = new();
 
-                using (SqlCommand command = new SqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue("@BookingReservationID", bookingReservationID);
-
-                    try
-                    {
-                        connection.Open();
-                        command.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception("An error occurred while deleting the booking reservation: " + ex.Message);
-                    }
-                }
-            }
+        }
         }
     }
-}
+

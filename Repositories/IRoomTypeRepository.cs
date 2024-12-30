@@ -1,4 +1,4 @@
-﻿using BusinessObjects;
+﻿using BusinessObjects.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +8,10 @@ namespace Repositories
 {
     public interface IRoomTypeRepository
     {
-        RoomType GetRoomType(int roomTypeID);
-        List<RoomType> GetAllRoomTypes();
-        void AddRoomType(RoomType roomType);
-        void UpdateRoomType(RoomType roomType);
-        void DeleteRoomType(int roomTypeID);
+        Task<RoomType> GetRoomType(int roomTypeID);
+        Task <IEnumerable<RoomType>> GetAllRoomTypes();
+        Task AddRoomType(RoomType roomType);
+        Task UpdateRoomType(RoomType roomType);
+        Task DeleteRoomType(int roomTypeID);
     }
 }

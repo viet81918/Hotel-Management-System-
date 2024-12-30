@@ -1,4 +1,4 @@
-﻿using BusinessObjects;
+﻿using BusinessObjects.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +12,10 @@ namespace Services
 {
     public interface IBookingReservationService
     {
-        void AddBookingReservation(BookingReservation bookingReservation);
-        void UpdateBookingReservation(BookingReservation bookingReservation);
-        void DeleteBookingReservation(int bookingReservationID);
-        List<BookingReservation> GetBookingReservation(int bookingReservationID);
-        List<BookingReservation> GetBookingReservations();
+        Task AddBookingReservation(BookingReservation bookingReservation);
+        Task UpdateBookingReservation(BookingReservation bookingReservation);
+        Task DeleteBookingReservation(int bookingReservationID);
+        Task<IEnumerable<BookingReservation>> GetBookingReservation(int? customerId = null, int? reservationId = null);
+        Task<IEnumerable<BookingReservation>> GetBookingReservations();
     }
 }

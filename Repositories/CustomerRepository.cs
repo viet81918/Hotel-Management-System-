@@ -1,19 +1,34 @@
 ﻿using System.Collections.Generic;
-using BusinessObjects;
+using BusinessObjects.Models;
 using DataAccessObjects;
 
 namespace Repositories
 {
     public class CustomerRepository : ICustomerRepository
     {
-        public void AddCustomer(Customer customer) => CustomerDAO.AddCustomer(customer);
+        public async Task AddCustomer(Customer customer)
+        {
+            await CustomerDAO.Instance.AddCustomer(customer);
+        }
 
-        public List<Customer> GetCustomers() => CustomerDAO.GetCustomers();
+        public async Task DeleteCustomer(int customerID)
+        {
+            await CustomerDAO.Instance.DeleteCustomer(customerID);
+        }
 
-        public Customer GetCustomer(String email) => CustomerDAO.GetCustomer(email);
+        public async Task<Customer> GetCustomer(string email)
+        {
+            return await CustomerDAO.Instance.GetCustomer(email);
+        }
 
-        public void UpdateCustomer(Customer customer) => CustomerDAO.UpdateCustomer(customer);
+        public async Task<IEnumerable<Customer>> GetCustomers()
+        {
+           return await CustomerDAO.Instance.getCustomers();
+        }
 
-        public void DeleteCustomer(int customerID) => CustomerDAO.DeleteCustomer(customerID);
+        public async Task UpdateCustomer(Customer customer)
+        {
+           await CustomerDAO.Instance.UpdateCustomer(customer);
+        }
     }
 }

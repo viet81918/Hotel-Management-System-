@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using BusinessObjects;
+using BusinessObjects.Models;
 using DataAccessObjects;
 using Repositories;
 
@@ -15,29 +15,29 @@ namespace Services
             customerRepository = new CustomerRepository(); // Replace with actual repository implementation
         }
 
-        public void AddCustomer(Customer customer)
+        public async Task AddCustomer(Customer customer)
         {
-            customerRepository.AddCustomer(customer);
+            await customerRepository.AddCustomer(customer);
         }
 
-        public List<Customer> GetCustomers()
+        public async Task<IEnumerable<Customer>> GetCustomers()
         {
-            return customerRepository.GetCustomers();
+            return await customerRepository.GetCustomers();
         }
 
-        public Customer GetCustomer(String email)
+        public async Task<Customer> GetCustomer(String email)
         {
-            return customerRepository.GetCustomer(email);
+            return await customerRepository.GetCustomer(email);
         }
 
-        public void UpdateCustomer(Customer customer)
+        public async Task UpdateCustomer(Customer customer)
         {
-            customerRepository.UpdateCustomer(customer);
+            await customerRepository.UpdateCustomer(customer);
         }
 
-        public void DeleteCustomer(int customerID)
+        public async Task DeleteCustomer(int customerID)
         {
-            customerRepository.DeleteCustomer(customerID);
+            await customerRepository.DeleteCustomer(customerID);
         }
     }
 }
